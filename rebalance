@@ -1,9 +1,17 @@
 #!/bin/bash
-AMOUNT_MBTC=10
+
+if [[ -z "$1" || -z "$2" ]] ; then
+    usage="usage: $0 node_id amount_mBTC"
+    echo $usage
+    exit 1
+fi
+
+TARGET_NODEID=$1
+AMOUNT_MBTC=$2
+
 echo "amount: "$AMOUNT_MBTC"mBTC"
 AMOUNT_MSAT="$AMOUNT_MBTC"00000000
 MY_NODEID=$($MAINNET_ECLAIR getinfo | jq -r .nodeId)
-TARGET_NODEID=$1
 
 INV=$($MAINNET_ECLAIR createinvoice --description=rebalance | jq -r .serialized)
 echo $INV
