@@ -1,0 +1,30 @@
+#!/bin/bash
+
+NET="$1"
+usage="usage: $0 (testnet|mainnet)"
+
+# check arguments
+
+if [[ -n "$1" && ( "$1" == "mainnet" || "$1" == "testnet" ) ]] ; then
+    echo "ok"
+else
+    echo $usage
+    exit 1
+fi
+
+
+PID=$(ps auxf |grep eclair|grep java|grep $NET | awk '{print $2}')
+
+if [ $PID ]; then
+   echo "found PID $PID"
+   kill $PID
+
+   while kill -0 $PID >/dev/null 2>&1
+   do
+       echo "waiting..."
+       sleep 0.1
+   done
+else
+
+    echo "PID not found"
+fi

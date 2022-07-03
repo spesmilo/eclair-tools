@@ -1,0 +1,17 @@
+#!/bin/bash
+eval "$(
+     jq -r ' .[] |
+ [
+  (
+    "printf",
+    "%s  %s  %10s  %8s  %10f  %10f\n",
+    .nodeId,
+    ( .data.shortChannelId | . + " " * (14 - length)  ),
+    (.data.channelUpdate.timestamp.iso[0:10]),
+    .state,
+    ( .data.commitments.localCommit.spec.toLocal  | tonumber | . / 1000 | floor | . / 100000 ),
+    ( .data.commitments.localCommit.spec.toRemote | tonumber | . / 1000 | floor | . / 100000 )
+  )
+ ]
+ | @sh'
+)"

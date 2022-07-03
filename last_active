@@ -1,0 +1,2 @@
+#!/bin/bash
+./relayed_by_channel $1 | jq  '.timestamp.unix' | jq -s 'max|todate'

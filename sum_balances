@@ -1,0 +1,9 @@
+#!/bin/bash
+
+LINES=$(jq)
+
+local=$(echo $LINES  | jq  '.[]| .data.commitments.localCommit.spec.toLocal' | jq -s 'add| ./100000000')
+remote=$(echo $LINES | jq  '.[]| .data.commitments.localCommit.spec.toRemote'| jq -s 'add| ./100000000')
+jq --arg local $local --arg remote $remote -n '{ "local": $local, "remote": $remote }'
+
+

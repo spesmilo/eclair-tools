@@ -1,0 +1,13 @@
+#!/bin/bash
+
+NET="$1"
+usage="usage: $0 (testnet|mainnet)"
+
+if [[ -n "$1" && ( "$1" == "mainnet" || "$1" == "testnet" ) ]] ; then
+
+    /opt/eclair/bin/eclair-node.sh -Declair.datadir="/home/boltz/$NET/eclair" &
+
+else
+    echo $usage
+    exit 1
+fi

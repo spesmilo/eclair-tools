@@ -1,0 +1,44 @@
+#!/bin/bash
+
+SHORT=s:
+LONG=public,private,sortby:
+OPTS=$(getopt  --options $SHORT --longoptions $LONG -- "$@")
+
+eval set -- "$OPTS"
+while :
+do
+  case "$1" in
+    --public )
+      filter="| select( .data.commitments.channelFlags.announceChannel == true )"
+      shift 1
+      ;;
+    --private )
+      filter="| select( .data.commitments.channelFlags.announceChannel == false )"
+      shift 1
+      ;;
+    -s | --sortby )
+      sortby=$2
+      shift 2
+      ;;
+    --)
+      shift;
+      break
+      ;;
+    *)
+      echo "Unexpected option: $1"
+      ;;
+  esac
+done
+
+if [ "$sortby" == "nodeId" ]; then
+    sort="sort_by( .nodeId ) |"
+elif [ "$sortby" == "shortChannelId" ]; then
+    sort="sort_by( .data.shortChannelId ) |"
+elif [ "$sortby" == "toLocal" ]; then
+    sort="sort_by( .data.commitments.localCommit.spec.toLocal ) |"
+elif [ "$sortby" == "toRemote" ]; then
+    sort="sort_by( .data.commitments.localCommit.spec.toRemote ) |"
+fi
+
+cmd="jq '$sort .[] $filter'"
+$MAINNET_ECLAIR channels | eval $cmd | jq -s

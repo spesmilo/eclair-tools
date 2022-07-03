@@ -1,0 +1,48 @@
+#!/bin/bash
+AMOUNT_MBTC=10
+echo "amount: "$AMOUNT_MBTC"mBTC"
+AMOUNT_MSAT="$AMOUNT_MBTC"00000000
+MY_NODEID=$($MAINNET_ECLAIR getinfo | jq -r .nodeId)
+TARGET_NODEID=$1
+
+INV=$($MAINNET_ECLAIR createinvoice --description=rebalance | jq -r .serialized)
+echo $INV
+
+ignore_list=""
+while true
+do
+    CMD="$MAINNET_ECLAIR findroutetonode --nodeId=$TARGET_NODEID --amountMsat=$AMOUNT_MSAT"
+    if [ "$ignore_list" != "" ]; then
+	CMD=$CMD" --ignoreNodeIds=$ignore_list"
+    fi
+    ROUTES=$($CMD)
+    echo $ROUTES | jq
+    echo "choose route"
+    read route
+    # todo: select non-trivial route
+    ROUTE=$(echo $ROUTES | jq -r --arg route $route '.routes|.[($route|tonumber)].nodeIds| join(",")')
+    ROUTE=$ROUTE,$MY_NODEID
+    PARENTID=$($MAINNET_ECLAIR sendtoroute --invoice=$INV  --amountMsat=$AMOUNT_MSAT --finalCltvExpiry=147 --nodeIds=$ROUTE | jq .parentId)
+    while true
+    do
+	sleep 1
+	INFO=$($MAINNET_ECLAIR getsentinfo --id=$PARENTID)
+	status=$(echo $INFO | jq -r '.[0]| .status.type')
+	if [ "$status" != "pending" ]; then
+	    break
+	fi
+    done
+    echo $INFO | jq
+    if [ "$status" == "sent" ]; then
+	echo "success"
+	exit 0
+    fi
+    failed_node=$(echo $INFO | jq -r '.[0]| .status.failures[0].failedNode')
+    if [ "$ignore_list" != "" ]; then
+	ignore_list=$ignore_list,$failed_node
+    else
+	ignore_list=$failed_node	
+    fi
+    echo "ignore_list: "$ignore_list    
+
+done

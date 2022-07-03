@@ -1,0 +1,6 @@
+#!/bin/bash
+chan_id=$(./scid_to_id $1)
+cat /tmp/eclair_data/audit.json | jq --arg chan_id $chan_id '.relayed | .[] | select( .type == "trampoline-payment-relayed" ) |  select( .incoming[0].channelId == $chan_id) '
+cat /tmp/eclair_data/audit.json | jq --arg chan_id $chan_id '.relayed | .[] | select( .type == "payment-relayed" ) |  select( .fromChannelId == $chan_id) '
+cat /tmp/eclair_data/audit.json | jq --arg chan_id $chan_id '.relayed | .[] | select( .type == "payment-relayed" ) |  select( .toChannelId == $chan_id) '
+

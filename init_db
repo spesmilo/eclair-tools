@@ -1,0 +1,7 @@
+#!/bin/bash
+dir="/tmp/eclair_data"
+mkdir -p $dir
+$MAINNET_ECLAIR audit > $dir/audit.json
+$MAINNET_ECLAIR channels > $dir/channels.json
+$MAINNET_ECLAIR networkfees > $dir/networkfees.json
+$MAINNET_BITCOINCLI listtransactions "*" 10000 > $dir/transactions.json
