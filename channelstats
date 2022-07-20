@@ -1,0 +1,5 @@
+#!/bin/bash
+cd $(dirname $0)
+cid=$(./scid_to_id $1)
+$MAINNET_ECLAIR channelstats | jq --arg cid $cid '.[] | select( .channelId==$cid )'
+

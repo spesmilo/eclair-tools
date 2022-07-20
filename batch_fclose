@@ -1,0 +1,2 @@
+#!/bin/bash
+./listchannels --private -s shortChannelId | ./format| grep $1 | awk '{print "$MAINNET_ECLAIR forceclose --shortChannelId="$2}'

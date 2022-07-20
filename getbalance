@@ -3,6 +3,6 @@ cd "$(dirname "$0")"
 eclair_onchain=$($MAINNET_ECLAIR onchainbalance | jq  '(.confirmed | tonumber | . / 100000) + (.unconfirmed | tonumber | . / 100000)')
 eclair_lightning=$($MAINNET_ECLAIR channels | ./sum_balances | jq '.local |tonumber')
 echo "{ 
- \"eclair_onchain\": $eclair_onchain,
- \"eclair_lightning\": $eclair_lightning
+ \"onchain\": $eclair_onchain,
+ \"lightning\": $eclair_lightning
 }" | jq 
