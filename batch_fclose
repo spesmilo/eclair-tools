@@ -1,2 +1,12 @@
 #!/bin/bash
-./listchannels --private -s shortChannelId | ./format| grep $1 | awk '{print "$MAINNET_ECLAIR forceclose --shortChannelId="$2}'
+
+
+if [[ -z "$1" ]] ; then
+    usage="usage: $0 date"
+    echo $usage
+    echo "pipe the output of this script into a shell to actually close"
+    exit 1
+fi
+
+CMD="./listchannels --private -s shortChannelId | ./format| grep $1"
+eval $CMD | awk '{print "$MAINNET_ECLAIR forceclose --shortChannelId="$2}'

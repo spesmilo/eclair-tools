@@ -1,4 +1,4 @@
 #!/bin/bash
 
-jq '.[] | (.data.commitments.localCommit.spec.toLocal + .data.commitments.localCommit.spec.toRemote) ' | jq -s 'add| ./100000000'
+jq 'map(.data.commitments.localCommit.spec.toLocal + .data.commitments.localCommit.spec.toRemote) | add| ./100000000'
 
