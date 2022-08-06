@@ -1,7 +1,8 @@
 #!/bin/bash
 jq '
 {
-  "local": (map(.data.commitments.localCommit.spec.toLocal)|add| ./100000000),
-  "remote": (map(.data.commitments.localCommit.spec.toRemote)|add| ./100000000)
+  "to_local": (map(.data.commitments.localCommit.spec.toLocal)|add| ./100000000),
+  "to_remote": (map(.data.commitments.localCommit.spec.toRemote)|add| ./100000000),
+  "htlcs_in": (map(.data.commitments.localCommit.spec.htlcs|.[]|select(.direction=="IN")|.add.amountMsat)|add | (. + 0) /100000000),
+  "htlcs_out": (map(.data.commitments.localCommit.spec.htlcs|.[]|select(.direction=="OUT")|.add.amountMsat)|add | (. + 0) /100000000)
 }'
-
