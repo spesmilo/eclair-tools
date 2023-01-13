@@ -1,6 +1,6 @@
 #!/bin/bash
 cd "$(dirname "$0")"
-eclair_onchain=$($MAINNET_ECLAIR onchainbalance | jq  '(.confirmed | tonumber | . / 100000) + (.unconfirmed | tonumber | . / 100000)')
+eclair_onchain=$($MAINNET_ECLAIR onchainbalance | jq  '(.confirmed + .unconfirmed) | . / 100000')
 eclair_lightning=$(./listchannels --open | ./sum_balances | jq '(.to_local + .htlcs_out)')
 echo "{ 
  \"onchain\": $eclair_onchain,

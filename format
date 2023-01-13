@@ -6,7 +6,7 @@ eval "$(
     "printf",
     "%s  %s  %10s %10f  %10f  %8s  %s\n",
     .nodeId,
-    ( .data.shortChannelId | . + " " * (14 - length)  ),
+    ( .data.shortIds.real.realScid | . + " " * (14 - length)  ),
     (.data.channelUpdate.timestamp.iso[0:10]),
     ( .data.commitments.localCommit.spec.toLocal  | tonumber | . / 1000 | floor | . / 100000 ),
     ( .data.commitments.localCommit.spec.toRemote | tonumber | . / 1000 | floor | . / 100000 ),

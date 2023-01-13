@@ -39,7 +39,7 @@ done
 if [ "$sortby" == "nodeId" ]; then
     sort="sort_by( .nodeId ) |"
 elif [ "$sortby" == "shortChannelId" ]; then
-    sort="sort_by( .data.shortChannelId ) |"
+    sort="sort_by( .data.shortIds.real.realScid ) |"
 elif [ "$sortby" == "toLocal" ]; then
     sort="sort_by( .data.commitments.localCommit.spec.toLocal ) |"
 elif [ "$sortby" == "toRemote" ]; then
