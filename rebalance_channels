@@ -1,0 +1,72 @@
+#!/bin/bash
+
+if [[ -z "$3" ]] ; then
+    usage="usage: $0 scid1 scid2 amount_mBTC"
+    echo $usage
+    exit 1
+fi
+
+# own channels
+FIRST=$1
+FINAL=$2
+AMOUNT_MBTC=$3
+
+SOURCE_ID=$($MAINNET_ECLAIR channel --shortChannelId=$FIRST|jq .nodeId)
+TARGET_ID=$($MAINNET_ECLAIR channel --shortChannelId=$FINAL|jq .nodeId)
+
+echo $SOURCE_ID
+echo $TARGET_ID
+echo "amount: "$AMOUNT_MBTC"mBTC"
+AMOUNT_MSAT="$AMOUNT_MBTC"00000000
+MY_NODEID=$($MAINNET_ECLAIR getinfo | jq -r .nodeId)
+
+INV=$($MAINNET_ECLAIR createinvoice --description=rebalance | jq -r .serialized)
+
+# ignore own channels
+ignore_list=$FIRST,$FINAL
+
+while true
+do
+    CMD="$MAINNET_ECLAIR findroutebetweennodes --sourceNodeId=$SOURCE_ID --targetNodeId=$TARGET_ID --amountMsat=$AMOUNT_MSAT --format=shortChannelId"
+    if [ "$ignore_list" != "" ]; then
+	CMD=$CMD" --ignoreShortChannelIds=$ignore_list"
+    fi
+    ROUTES=$($CMD)
+    if [ "$ROUTES" == "route not found" ]; then
+	echo "route not found"
+	break
+    fi
+    ROUTE=$(echo $ROUTES | jq -r '.routes|.[(0|tonumber)].shortChannelIds| join(",")')
+    ROUTE=$FIRST,$ROUTE,$FINAL
+    echo "route: $ROUTE"
+    PARENTID=$($MAINNET_ECLAIR sendtoroute --invoice=$INV  --amountMsat=$AMOUNT_MSAT --finalCltvExpiry=147 --shortChannelIds=$ROUTE | jq .parentId)
+    while true
+    do
+	sleep 1
+	INFO=$($MAINNET_ECLAIR getsentinfo --id=$PARENTID)
+	status=$(echo $INFO | jq -r '.[0]| .status.type')
+	if [ "$status" != "pending" ]; then
+	    break
+	fi
+    done
+    if [ "$status" == "sent" ]; then
+        echo $INFO | jq
+	echo "success"
+	exit 0
+    fi
+    failure_message=$(echo $INFO | jq -r '.[0]| .status.failures[0].failureMessage')
+    regex="^channel ([0-9x]+) is currently unavailable$"
+    if [[ $failure_message =~ $regex ]]; then
+	scid="${BASH_REMATCH[1]}"
+        if [ "$ignore_list" != "" ]; then
+            ignore_list=$ignore_list,$scid
+        else
+            ignore_list=$scid	
+        fi
+        echo "ignore_list: "$ignore_list
+    else
+        echo $INFO | jq
+	exit 0
+    fi
+
+done
